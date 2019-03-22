@@ -1,0 +1,101 @@
+---
+title: "Multiple Linear Regression"
+author: "Vivan Dsouza"
+date: "22 March 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Clear the work environment and set the working directory
+
+```{r}
+
+rm(list = ls(all=TRUE))
+getwd()
+
+```
+
+## Read the data
+
+```{r}
+
+dataset = read.csv("50_Startups.csv")
+
+```
+
+## Encoding Categorical variables
+
+```{r}
+
+table(dataset$State)   ## Check the levels
+
+dataset$State = factor(dataset$State,
+                       levels = c("New York", "California", "Florida"),
+                       labels = c(1, 2, 3))
+
+```
+
+## Splitting the dataset into training and test set
+
+```{r}
+
+library(caTools)
+set.seed(123)
+split = sample.split(dataset$Profit, SplitRatio = 0.8)
+training_set = subset(dataset, split == TRUE)
+test_set = subset(dataset, split == FALSE)
+
+```
+
+## Fitting multiple linear regression to the training set
+
+```{r}
+
+regression = lm(formula = Profit ~ ., data = training_set)
+summary(regression)
+
+```
+
+## Removing the non-significant variables
+
+```{r}
+
+#regression = lm(formula = Profit ~ R.D.Spend, data = training_set)
+#summary(regression)
+
+```
+
+## Predicting the test results
+
+```{r}
+
+y_pred = predict(regression, newdata = test_set)
+print(y_pred)       ## Predicted profits
+print(test_set$Profit)   ## Real profits
+
+```
+
+## Buidling the optimal model using backward elimination
+
+```{r}
+
+regression = lm(formula = Profit ~ R.D.Spend + Administration + Marketing.Spend + State, data = dataset)
+summary(regression)
+
+## Remove State, which has non-significant value (0.99)
+regression = lm(formula = Profit ~ R.D.Spend + Administration + Marketing.Spend, data = dataset)
+summary(regression)
+
+## Remove Administration, which has non-significant value (0.608)
+regression = lm(formula = Profit ~ R.D.Spend +Marketing.Spend, data = dataset)
+summary(regression)
+
+## Remove Marketing spend, which has non-significant value (0.06)
+regression = lm(formula = Profit ~ R.D.Spend, data = dataset)
+summary(regression)
+
+```
+
